@@ -4,7 +4,7 @@ A simulation of a page table to visualize the process of mapping virtual address
 
 # How to run
 
-You need to have dotnet installed. If you are using macOS and use the package manager (Homebrew)[https://brew.sh], do the following:
+You need to have dotnet installed. If you are using macOS and use the package manager [Homebrew](https://brew.sh), do the following:
 
 ```sh
 # Optional
