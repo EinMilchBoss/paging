@@ -4,7 +4,7 @@ namespace Paging;
 
 public static class Program
 {
-    public static void Main(string[] args)
+    public static void Main()
     {
         var ptIndexBitCount = ReadPageTableIndexBits();
         var ptAddressOffset = ReadPageTableAddressOffset(ptIndexBitCount);
@@ -14,8 +14,8 @@ public static class Program
         var shouldPrintPt = UserInput.GetConfirmation($"Do you want to print the page table ({pt.EntryCount} entries)?");
         if (shouldPrintPt)
             Console.WriteLine(AddressInformation(pt));
-
-        var virtAddress = UserInput.GetInput<uint>("What virtual address should be converted?");
+        
+        var virtAddress = UserInput.GetAddress("What virtual address should be converted? Prepend with \"0x\" for hexadecimal input.");
         var (physAddress, logs) = pt.TranslateToPhysical(virtAddress);
         Console.WriteLine(string.Join('\n', logs));
         Console.WriteLine($"Physical address: 0x{physAddress:X8} ({physAddress}).");
@@ -29,7 +29,7 @@ public static class Program
         
         while (true)
         {
-            var pageIndexBits = UserInput.GetInput<int>("Provide the amount of bits reserved for the page index.");
+            var pageIndexBits = UserInput.GetInt("Provide the amount of bits reserved for the page index.");
             if (pageIndexBits is >= 1 and <= maxSize) return pageIndexBits;
             
             Console.Error.WriteLine("Input has to be in range of 1 to 20. Try again.");
@@ -41,7 +41,7 @@ public static class Program
         var entryCount = (int)Math.Pow(2, indexBitCount);
         while (true)
         {
-            var ptOffset = UserInput.GetInput<int>("What offset should the page table addresses have?");
+            var ptOffset = UserInput.GetInt("What offset should the page table addresses have?");
             if (0 <= ptOffset && ptOffset < entryCount) return ptOffset;
 
             Console.Error.WriteLine($"Input has to be in range of 0 to {entryCount - 1}. Try again.");

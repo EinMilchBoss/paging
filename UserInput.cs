@@ -8,7 +8,8 @@ public static class UserInput
         {
             Console.WriteLine($"{prompt} (Y/n)");
             var input = Console.ReadLine();
-            switch (input)
+            
+            switch (input?.Trim())
             {
                 case null:
                     throw new InputException("Something went wrong whilst reading user input.");
@@ -23,7 +24,15 @@ public static class UserInput
         }
     }
 
-    public static T GetInput<T>(string prompt)
+    public static int GetInt(string prompt) => GetNumber(prompt, int.Parse);
+    
+    public static uint GetAddress(string prompt) => GetNumber(prompt, ParseAddress);
+
+    private static uint ParseAddress(string input) => input.Trim().StartsWith("0x")
+            ? Convert.ToUInt32(input, 16)
+            : Convert.ToUInt32(input);
+    
+    private static T GetNumber<T>(string prompt, Func<string, T> parseNumber)
     {
         while (true)
         {
@@ -32,10 +41,11 @@ public static class UserInput
 
             if (input == null)
                 throw new InputException("Something went wrong whilst reading user input.");
-        
-            switch (TryConvertInputToType<T>(input, out var result))
+
+            switch (TryParseNumberWithReason(input, out var result, parseNumber))
             {
                 case (true, _):
+                    // This is safe because we wouldn't return true in case of a null value.
                     return result!;
                 case (false, var reason):
                     Console.Error.WriteLine($"{reason} Try again.");
@@ -44,33 +54,25 @@ public static class UserInput
         }
     }
 
-    /// <summary>
-    /// Tries to convert the input safely to the specified type. If this does not work, a printable reason for the failed attempt is given.
-    /// </summary>
-    /// <param name="input"></param>
-    /// <param name="result"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns>Either returns true and a non-null result or false with a garbage value.</returns>
-    private static (bool success, string reason) TryConvertInputToType<T>(string input, out T? result)
+    private static (bool success, string reason) TryParseNumberWithReason<T>(string input, out T? result, Func<string, T> parseNumber)
     {
-        result = default;
-        
         try
         {
-            result = (T)Convert.ChangeType(input, typeof(T));
+            result = parseNumber(input.Trim());
             return (true, string.Empty);
         }
-        catch (OverflowException)
+        catch (Exception ex)
         {
-            return (false, "Provided input is too large.");
-        }
-        catch (FormatException)
-        {
-            return (false, "Provided input is of wrong type.");
-        }
-        catch (Exception)
-        {
-            return (false, "Provided input is invalid.");
+            result = default;
+            return (false, ConvertToParseNumberReason(ex));
         }
     }
+
+    private static string ConvertToParseNumberReason(Exception ex) =>
+        ex switch
+        {
+            OverflowException => "Provided input is too large.",
+            FormatException => "Provided input is of wrong type.",
+            _ => "Provided input is invalid."
+        };
 }

@@ -32,17 +32,17 @@ public class PageTable
         };
     }
 
-    private static uint[] CreateAddressesByAddressOffset(int entryCount, int offsetBitCount, int offset)
+    private static uint[] CreateAddressesByAddressOffset(int entryCount, int offsetBitCount, int addressOffset)
     {
         var pageTable = new uint[entryCount];
         
         var counter = 0;
-        for (var i = offset; i < entryCount; i++)
+        for (var i = addressOffset; i < entryCount; i++)
         {
             pageTable[i] = (uint)counter << offsetBitCount;
             counter += 1;
         }
-        for (var i = 0; i < offset; i++)
+        for (var i = 0; i < addressOffset; i++)
         {
             pageTable[i] = (uint)counter << offsetBitCount;
             counter += 1;
